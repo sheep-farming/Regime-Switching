@@ -1,4 +1,5 @@
 %% RAmen!
+%
 %                            _ooOoo_
 %                           o8888888o
 %                           88" . "88
@@ -26,10 +27,8 @@
 
 
 
-function [betas,ses,vols,covAMs] = getBetas()
+function [betas,ses,vols,covAMs] = getBetas(Returns)
 
-load('returns.mat')
-Returns=Returns;
 rMkt = Returns(:,12)';
 varMkt = var(rMkt);
 betas = [];

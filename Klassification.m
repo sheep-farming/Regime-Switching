@@ -1,130 +1,171 @@
-clear;
-load('returns.mat');
+clear;clc;clf;
 
-dateStart = datenum(Dates(1),'dd/mm/yyyy');
-dateEnd = datenum(Dates(end),'dd/mm/yyyy');
+load('bbgdata.mat');
+
+%Fuck All Bonds
+    Returns(:,2)=Returns(:,5)
+    Returns(:,3)=Returns(:,5)
+
+
+
+addpath('MS_Regress-Matlab')
+addpath('MS_Regress-Matlab/m_Files'); % add 'm_Files' folder to the search path
+
+%dateStart = datenum(Dates(1),'dd/mm/yyyy');
+%dateEnd = datenum(Dates(end),'dd/mm/yyyy');
 %% Variables
 %
 % P Q <- Switching Probability
 % uu1 uu2 <- World Excess Return
-% th1 th2 <- World Volatility
 %
 
 %% Assumptions 
 %
 % uuz = uRf
-Returns = Returns;
-uuz = mean(Returns(:,1))/12;
+Returnz = Returns;
+figure(3);
+hold on;
+for i=1:12
+    plot(1:length(Returns)+1,ret2price(Returns(:,i),100),'--');
+end
 
-wRet = Returns(:,12); % Annualised world return per month
-wExRet = wRet - Returns(:,1)/12;
+%% Regression Parameters
+    
 
-
-
-
-%% Output Here
-
-addpath('MS_Regress-Matlab')
-addpath('MS_Regress-Matlab/m_Files'); % add 'm_Files' folder to the search path
-
-constVec=ones(length(wExRet),1); % A constant vector in mean equation (just an example of how to do it)
-indep = [constVec];
 k=2;                                % Number of States
 S=[1 1];                        % Defining which parts of the equation will switch states (column 1 and variance only)
 advOpt.distrib='Normal';            % The Distribution assumption ('Normal', 't' or 'GED')
 advOpt.std_method=1;                % Defining the method for calculation of standard errors. See pdf file for more details
+advOpt.printIter='0';
 
-[Spec_Out]=MS_Regress_Fit(wExRet,indep,k,S,advOpt) % Estimating the model
+%% Variables in Iteration
 
-%% Plot Return & Probabilities
-val = [100];
-figure(1)
-subplot(2,1,2);
-plot(Spec_Out.filtProb(:,1));
-subplot(2,1,1);
-hold on
-for i=1:length(wExRet)
-    val = [val val(end)*exp(wExRet(i))];
-    if(Spec_Out.filtProb(i,1)<.5)
-        plot(i,val(i),'r+');
-    else
-        plot(i,val(i),'g+');
-    end
+
+mVal = ones(1,50);
+sVal = ones(1,50);
+prob = ones(1,50);
+input('Enter');
+
+%% Iteration to Oldie
+i=50;
+ws = [];
+while 1
+%for i=50:length(Returnz)
     
+    Returns = Returnz(1:i,:);
+
+    uuz = Returns(:,1); % Risk Free Rate, assumed to be Zero Beta Premium
+
+    wRet = Returns(:,12); 
+    wExRet = wRet - Returns(:,1);
+    constVec=ones(length(wExRet),1); % A constant vector in mean equation (just an example of how to do it)
+    indep = [constVec];
+    % Regression
+
+    [Spec_Out]=MS_Regress_Fit(wExRet,indep,k,S,advOpt); % Estimating the model
+    prob = [prob Spec_Out.filtProb(end,1)];
+    %% Plot Return & Probabilities
+    mVal=[mVal mVal(end)*(1+Returns(end,end))]
+    
+
+%     if(Spec_Out.filtProb(end,1)<.5)
+%         hold on
+%         plot(i,mVal(end),'r+');
+%     else
+%         hold on
+%         plot(i,mVal(end),'g+');
+%     end
+
+    P = Spec_Out.Coeff.p(1,1);
+    Q = Spec_Out.Coeff.p(2,2);
+    
+    figure(2);
+    subplot(2,1,1);
+    plot(1:i+1,mVal);
+    subplot(2,1,2);
+    plot(1:i+1,prob);
+    
+
+    
+
+
+    %% Mu and Sigma for Each Regimes
+
+    uus = Spec_Out.Coeff.S_Param{1};
+    sis = [sqrt(Spec_Out.Coeff.covMat{1}) sqrt(Spec_Out.Coeff.covMat{2})];
+
+    %% Betas of Assets
+
+    [betas, ses, vols,covAMs] = getBetas(Returns);
+
+    %% Resulted Values
+
+    condER = [P*uus(1)+(1-P)*uus(2) (1-Q)*uus(1)+Q*uus(2)];
+    condVar = [P*sis(1)^2+(1-P)*sis(2)^2+P*(1-P)*(uus(1)-uus(2))^2 (1-Q)*sis(1)^2+Q*sis(2)^2+Q*(1-Q)*(uus(1)-uus(2))^2];
+    condStd = sqrt(condVar);
+
+    %% Asset Expected Returns for Next Period given Current State of Regime 
+
+    ER = uuz(end) + (condER'-uuz(end))*betas;
+
+    %% Asset Idiosyncratic Risk (StD) by Deducting Market Vol * Indi Beta from Indi Vol
+    mVol = vols(12);
+
+    idioVols = sqrt(var(Returns - wRet * betas));
+    % Sigs = condStd'*betas+ones(2,1)*idioVols
+
+    %% Estimate Covariance Matrix
+    % Kill 1 2
+
+    idioVols = idioVols(2:end-1);
+    vbetas = betas(2:end-1)';
+    ER = ER(:,2:end-1);
+
+    V = diag(idioVols.^2);
+
+    Om1 = (vbetas*vbetas')*(sis(1))^2+V;
+    Om2 = (vbetas*vbetas')*(sis(2))^2+V;
+
+    %% Above OK
+
+
+    Sigma1 = P*Om1+(1-P)*Om2+P*(1-P)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
+    Sigma2 = (1-Q)*Om1+Q*Om2+Q*(1-Q)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
+
+    w1 = inv(Sigma1)*ER(1,:)';
+    w2 = inv(Sigma2)*ER(2,:)';
+    w1=(ones(1,length(w1))*w1)^-1*w1; % w1/sum(w1)
+    w2=(ones(1,length(w2))*w2)^-1*w2; % w1/sum(w1)
+    
+    ws = [ws,w1,w2]
+
+    
+    figure(4)
+
+
+    if(prob(end)<.5)
+        sret = Returnz(i+1,2:end-1)*w1;
+    else
+        sret = Returnz(i+1,2:end-1)*w2;
+    end
+
+    sVal=[sVal sVal(end)*(1+sret(end))];
+
+    plot(sVal,'g-');
+    hold on;
+    plot(mVal,'k--');
+
+    i=i+1;
+        if(mod(i,48)==0)
+            input('5 Times Break');
+        end
 end
 
-P = Spec_Out.Coeff.p(1,1);
-Q = Spec_Out.Coeff.p(2,2);
-
-%% Mu and Sigma for Each Regimes
-
-uus = Spec_Out.Coeff.S_Param{1};
-sis = [sqrt(Spec_Out.Coeff.covMat{1}) sqrt(Spec_Out.Coeff.covMat{2})];
-
-%% Betas of Assets
-
-[betas, ses, vols,covAMs] = getBetas;
-
-%% Resulted Values
-
-condER = [P*uus(1)+(1-P)*uus(2) (1-Q)*uus(1)+Q*uus(2)];
-condVar = [P*sis(1)^2+(1-P)*sis(2)^2+P*(1-P)*(uus(1)-uus(2))^2 (1-Q)*sis(1)^2+Q*sis(2)^2+Q*(1-Q)*(uus(1)-uus(2))^2];
-condStd = sqrt(condVar);
-
-%% Asset Expected Returns for Next Period given Current State of Regime 
-
-ER = uuz + (condER'-uuz)*betas;
-
-%% Asset Idiosyncratic Risk (StD) by Deducting Market Vol * Indi Beta from Indi Vol
-mVol = vols(12);
-
-idioVols = sqrt(var(Returns - wRet * betas));
-% Sigs = condStd'*betas+ones(2,1)*idioVols
-
-%% Estimate Covariance Matrix
-% Kill 1 2
-
-idioVols = idioVols(2:end-1);
-betas = betas(2:end-1);
-ER = ER(:,2:end-1);
-
-V = diag(idioVols.^2);
-
-betas = betas';
-Om1 = (betas*betas')*(sis(1))^2+V;
-Om2 = (betas*betas')*(sis(2))^2+V;
-
-%% Above OK
-
-
-Sigma1 = P*Om1+(1-P)*Om2+P*(1-P)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
-Sigma2 = (1-Q)*Om1+Q*Om2+Q*(1-Q)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
-
-w1 = inv(Sigma1)*ER(1,:)';
-w2 = inv(Sigma2)*ER(2,:)';
-w1=w1;
-w2=w2;
 
 %% ER: Expected Returns, Sigs: Expected Volatilities for Assets (1,2,..., 12) under Regime 1 / 2
 
 
 %% Plot Strategy on One
-figure(2)
-hold on
-for i=1:12
-    plot(ret2price(Returns(:,i),100));
-end
 
-hold on
-sval = [100];
-srets=[];
-for i=1:length(wExRet)
-    
-    if(Spec_Out.filtProb(i,1)<.5)
-        sret = Returns(i,2:end-1)*w1;
-    else
-        sret = Returns(i,2:end-1)*w2;
-    end
-    srets=[srets sret]
-end
-plot(ret2price(srets,100))
+
+
