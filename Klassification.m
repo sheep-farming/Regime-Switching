@@ -21,7 +21,6 @@ wExRet = wRet - Returns(:,1)/12;
 
 
 
-    
 
 %% Output Here
 
@@ -78,20 +77,25 @@ ER = uuz + (condER'-uuz)*betas;
 
 %% Asset Idiosyncratic Risk (StD) by Deducting Market Vol * Indi Beta from Indi Vol
 mVol = vols(12);
-idioVols = sqrt(var(Returns - wRet*betas));
+
+idioVols = sqrt(var(Returns - wRet * betas));
 % Sigs = condStd'*betas+ones(2,1)*idioVols
 
 %% Estimate Covariance Matrix
 % Kill 1 2
-idioVols=idioVols(2:end-1);
+
+idioVols = idioVols(2:end-1);
 betas = betas(2:end-1);
 ER = ER(:,2:end-1);
 
 V = diag(idioVols.^2);
 
+betas = betas';
+Om1 = (betas*betas')*(sis(1))^2+V;
+Om2 = (betas*betas')*(sis(2))^2+V;
 
-Om1 = (betas'*betas)*(sis(1))^2+V;
-Om2 = (betas'*betas)*(sis(2))^2+V;
+%% Above OK
+
 
 Sigma1 = P*Om1+(1-P)*Om2+P*(1-P)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
 Sigma2 = (1-Q)*Om1+Q*Om2+Q*(1-Q)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
@@ -113,14 +117,14 @@ end
 
 hold on
 sval = [100];
+srets=[];
 for i=1:length(wExRet)
     
     if(Spec_Out.filtProb(i,1)<.5)
-        sret = 1 + Returns(i,2:end-1)*w1;
+        sret = Returns(i,2:end-1)*w1;
     else
-        sret = 1 + Returns(i,2:end-1)*w2;
+        sret = Returns(i,2:end-1)*w2;
     end
-    sval = [sval sval(end)*sret];
-    
+    srets=[srets sret]
 end
-plot(sval)
+plot(ret2price(srets,100))
