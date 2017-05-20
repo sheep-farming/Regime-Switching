@@ -75,8 +75,6 @@ idioVols = sqrt(var(Returns - wRet*betas));
 % Sigs = condStd'*betas+ones(2,1)*idioVols
 
 %% Estimate Covariance Matrix
-% Kill 1 2
-
 v = diag(idioVols);
 Om1 = (betas*betas')*(condStd(1))^2+v;
 Om2 = (betas*betas')*(condStd(2))^2+v;

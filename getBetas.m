@@ -24,13 +24,15 @@
 %  Created by Du Pupu on 19/5/17.
 %
 
-function [betas,ses] = getBetas()
+function [betas,ses,vols,covAMs] = getBetas()
 
 load('bbgdata.mat')
+Returns=Returns/100;
 rMkt = Returns(:,5)';
 varMkt = var(rMkt);
 betas = [];
 ses = [];
+covAMs = [];
 for i=1:12
     rAst = Returns(:,i)';
     
@@ -41,6 +43,8 @@ for i=1:12
     [corr,astBeta,astSlope]=regression(rMkt,rAst);
     betas = [betas astBeta];
     ses = [ses sqrt(var(rAst)/(length(rAst)-2)/var(rMkt))];
+    covAMs = [covAMs covAM];
 end
 
+vols = sqrt(var(Returns));
 end 
