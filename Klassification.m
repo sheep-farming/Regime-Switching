@@ -1,6 +1,8 @@
 clear;
-load('bbgdata.mat');
+load('returns.mat');
 
+dateStart = datenum(Dates(1),'dd/mm/yyyy');
+dateEnd = datenum(Dates(end),'dd/mm/yyyy');
 %% Variables
 %
 % P Q <- Switching Probability
@@ -11,11 +13,15 @@ load('bbgdata.mat');
 %% Assumptions 
 %
 % uuz = uRf
-Returns = Returns /100;
+Returns = Returns;
 uuz = mean(Returns(:,1))/12;
 
-wRet = Returns(:,5); % Annualised world return per month
+wRet = Returns(:,12); % Annualised world return per month
 wExRet = wRet - Returns(:,1)/12;
+
+
+
+    
 
 %% Output Here
 
@@ -33,6 +39,7 @@ advOpt.std_method=1;                % Defining the method for calculation of sta
 
 %% Plot Return & Probabilities
 val = [100];
+figure(1)
 subplot(2,1,2);
 plot(Spec_Out.filtProb(:,1));
 subplot(2,1,1);
@@ -70,22 +77,50 @@ condStd = sqrt(condVar);
 ER = uuz + (condER'-uuz)*betas;
 
 %% Asset Idiosyncratic Risk (StD) by Deducting Market Vol * Indi Beta from Indi Vol
-mVol = vols(5);
+mVol = vols(12);
 idioVols = sqrt(var(Returns - wRet*betas));
 % Sigs = condStd'*betas+ones(2,1)*idioVols
 
 %% Estimate Covariance Matrix
 % Kill 1 2
+idioVols=idioVols(2:end-1);
+betas = betas(2:end-1);
+ER = ER(:,2:end-1);
 
-v = diag(idioVols);
-Om1 = (betas*betas')*(condStd(1))^2+v;
-Om2 = (betas*betas')*(condStd(2))^2+v;
+V = diag(idioVols.^2);
 
-Sigma1 = P*Om1+(1-P)*Om2+P*(1-P)*(ER(1,:)-ER(2,:))*(ER(1,:)-ER(2,:))'
-Sigma2 = (1-Q)*Om1+Q*Om2+Q*(1-Q)*(ER(1,:)-ER(2,:))*(ER(1,:)-ER(2,:))'
 
-w1 = inv(Sigma1)*ER(1,:)'
-w2 = inv(Sigma2)*ER(2,:)'
+Om1 = (betas'*betas)*(sis(1))^2+V;
+Om2 = (betas'*betas)*(sis(2))^2+V;
+
+Sigma1 = P*Om1+(1-P)*Om2+P*(1-P)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
+Sigma2 = (1-Q)*Om1+Q*Om2+Q*(1-Q)*(ER(1,:)-ER(2,:))'*(ER(1,:)-ER(2,:))
+
+w1 = inv(Sigma1)*ER(1,:)';
+w2 = inv(Sigma2)*ER(2,:)';
+w1=w1;
+w2=w2;
 
 %% ER: Expected Returns, Sigs: Expected Volatilities for Assets (1,2,..., 12) under Regime 1 / 2
 
+
+%% Plot Strategy on One
+figure(2)
+hold on
+for i=1:12
+    plot(ret2price(Returns(:,i),100));
+end
+
+hold on
+sval = [100];
+for i=1:length(wExRet)
+    
+    if(Spec_Out.filtProb(i,1)<.5)
+        sret = 1 + Returns(i,2:end-1)*w1;
+    else
+        sret = 1 + Returns(i,2:end-1)*w2;
+    end
+    sval = [sval sval(end)*sret];
+    
+end
+plot(sval)

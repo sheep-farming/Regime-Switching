@@ -24,11 +24,13 @@
 %  Created by Du Pupu on 19/5/17.
 %
 
+
+
 function [betas,ses,vols,covAMs] = getBetas()
 
-load('bbgdata.mat')
-Returns=Returns/100;
-rMkt = Returns(:,5)';
+load('returns.mat')
+Returns=Returns;
+rMkt = Returns(:,12)';
 varMkt = var(rMkt);
 betas = [];
 ses = [];

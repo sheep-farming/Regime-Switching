@@ -1,5 +1,5 @@
 clear;
-load('bbgdata.mat');
+load('returns.mat');
 
 %% Variables
 %
@@ -11,10 +11,10 @@ load('bbgdata.mat');
 %% Assumptions 
 %
 % uuz = uRf
-Returns = Returns /100;
+Returns = Returns;
 uuz = mean(Returns(:,1))/12;
 
-wRet = Returns(:,5); % Annualised world return per month
+wRet = Returns(:,12); % Annualised world return per month
 wExRet = wRet - Returns(:,1)/12;
 
 %% Output Here
@@ -70,14 +70,19 @@ condStd = sqrt(condVar);
 ER = uuz + (condER'-uuz)*betas;
 
 %% Asset Idiosyncratic Risk (StD) by Deducting Market Vol * Indi Beta from Indi Vol
-mVol = vols(5);
+mVol = vols(12);
 idioVols = sqrt(var(Returns - wRet*betas));
 % Sigs = condStd'*betas+ones(2,1)*idioVols
 
 %% Estimate Covariance Matrix
+% Kill 1 2
+idioVols=idioVols(2:end-1);
+betas = betas(2:end-1);
+
 v = diag(idioVols);
 Om1 = (betas*betas')*(condStd(1))^2+v;
 Om2 = (betas*betas')*(condStd(2))^2+v;
+ER = ER(:,2:end-1);
 
 Sigma1 = P*Om1+(1-P)*Om2+P*(1-P)*(ER(1,:)-ER(2,:))*(ER(1,:)-ER(2,:))'
 Sigma2 = (1-Q)*Om1+Q*Om2+Q*(1-Q)*(ER(1,:)-ER(2,:))*(ER(1,:)-ER(2,:))'
@@ -87,3 +92,18 @@ w2 = inv(Sigma2)*ER(2,:)'
 
 %% ER: Expected Returns, Sigs: Expected Volatilities for Assets (1,2,..., 12) under Regime 1 / 2
 
+
+%% Plot Strategy on One
+
+subplot(2,1,1);
+hold on
+sval = [100];
+for i=1:length(wExRet)
+    
+    if(Spec_Out.filtProb(i,1)<.5)
+        Returns(i,2:end-1)*w1
+    else
+        Returns(i,2:end-1)*w2
+    end
+    
+end
