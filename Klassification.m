@@ -36,7 +36,8 @@ k=2;                                % Number of States
 S=[1 1];                        % Defining which parts of the equation will switch states (column 1 and variance only)
 advOpt.distrib='Normal';            % The Distribution assumption ('Normal', 't' or 'GED')
 advOpt.std_method=1;                % Defining the method for calculation of standard errors. See pdf file for more details
-advOpt.printIter='0';
+%advOpt.printIter='1';
+%advOpt.printOut='1';
 
 %% Variables in Iteration
 
@@ -64,6 +65,7 @@ out.betas = {};
 out.betases = {};
 out.covAMs={};
 out.vols={};
+out.uuz = Returns()
 
 out.condER=[];
 out.condER=[];
@@ -73,9 +75,10 @@ out.prob=[];
 out.Spec_Out={};
 
 
-i=50;
+i=278;
 ws = [];
-while 1
+while 0
+end
 %for i=50:length(Returnz)
     
     Returns = Returnz(1:i,:);
@@ -211,7 +214,7 @@ while 1
 %         if(mod(i,48)==0)
 %             %input('5 Times Break');
 %         end
-end
+%end
 
 
 %% ER: Expected Returns, Sigs: Expected Volatilities for Assets (1,2,..., 12) under Regime 1 / 2
