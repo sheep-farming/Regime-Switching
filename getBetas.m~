@@ -29,7 +29,7 @@
 
 function [betas,ses,vols,covAMs] = getBetas(Returns)
 
-uuz=Returns(:,1);
+uuz = 
 rMkt = Returns(:,12)';
 varMkt = var(rMkt);
 betas = [];
@@ -42,7 +42,7 @@ for i=1:12
     covAM = covAM(1,2);
     
     
-    [corr,astBeta,astSlope]=regression(rMkt-uuz',rAst-uuz');
+    [corr,astBeta,astSlope]=regression(rMkt-,rAst);
     betas = [betas astBeta];
     ses = [ses sqrt(var(rAst)/(length(rAst)-2)/var(rMkt))];
     covAMs = [covAMs covAM];
