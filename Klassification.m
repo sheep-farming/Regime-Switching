@@ -3,8 +3,7 @@ clear;clc;clf;
 load('bbgdata.mat');
 
 %Fuck All Bonds
-    Returns(:,2)=Returns(:,5)
-    Returns(:,3)=Returns(:,5)
+
 
 
 
