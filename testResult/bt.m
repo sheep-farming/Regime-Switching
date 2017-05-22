@@ -66,7 +66,7 @@ prob = out.prob(50:end);
 
 rets = [];
 
-for i=1:length(prob)-20
+for i=1:length(prob)-1
     if(prob(i)>0.5)
         rets = [rets ret1(i+1)];
     else
@@ -81,15 +81,61 @@ for i=1:12
     pld = [pld ret2price(Returns(51:end,i))]
 end
 
+
+
+
+
+
+
+
+
+%%MV OPT
+
+
+%% Fur Plotting
+ER = out.ER{end}';
+o={}
+o.ER1 = ER(:,1);
+o.ER2 = ER(:,2);
+o.Sig1 = Sigma1{end}
+o.Sig2 = Sigma2{end}
+o.ERu = mean(Returns(:,2:11))
+o.Sigu = cov(Returns(:,2:11))
+
+%MeanVarianceOptimization(ExpRet, CovMat, numPort, method)
+
+input('Enter');
 %% Mean Variance Portfolio & RS Strategy
 
 clf 
-
+subplot(2,1,1)
 plot(ret2price(rets),'k-','LineWidth',3)
 hold on
-plot(ret2price(Returns(52:end,2:11)*mvw'),'b:','LineWidth',2)
+plot(ret2price(Returns(52:end,2:11)*mvw'),'k:','LineWidth',2)
+plot(ret2price(Returns(52:end,12)),'g-','LineWidth',2)
+plot(ret2price(Returns(52:end,5)),'b-','LineWidth',2)
+Legends = {'RS Strategy', 'Non-Regime-Dependent Strategy', 'World','EMBI'};
+lgd = legend(Legends,'Location','Northwest','FontSize',20);
+set(gca, 'Xtick', [0:12:240])
+set(gca, 'XtickLabel', [1998:1:2018],'FontSize',12)
+
+%input('Enter')
+
+subplot(2,1,2);
+hold on
+plot(out.Spec_Out{end}.smoothProb(50:end,1),'k-');
+plot(out.Spec_Out{end}.filtProb(50:end,1),'b--');
+set(gca, 'Xtick', [0:12:240])
+set(gca, 'XtickLabel', [1998:1:2018],'FontSize',12)
+
+
+legend({'Smooth Probability','Filter Probability'},'Location','Southeast','FontSize',20)
+
+
 input('Enter')
 
+
+%% Strategy & WORLD
 clf
 pld = [pld(:,2:end)]
 
@@ -100,7 +146,6 @@ hold on
 
 Legends = {'China','Japan','US','EMBI', 'Switzerland','North America', 'EU', 'UK', 'Pacific', 'EM','World','RS Strategy'};
 lgd = legend(Legends,'Location','Northwest','FontSize',14);
-set(lgd,'FontSize',14);
 set(gca, 'Xtick', [0:12:240])
 set(gca, 'XtickLabel', [1998:1:2018],'FontSize',12)
 

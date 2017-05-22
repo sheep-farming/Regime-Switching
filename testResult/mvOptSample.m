@@ -14,7 +14,7 @@ function[] = mvOpt()
 %% input parameters
 
 method = 'constr'; % 'constr' for short sales constraints; 'unconstr' for unconstrained optimization
-numPort = 50; % Number of portfolios on efficient frontier
+numPort = 100; % Number of portfolios on efficient frontier
 retFreq = 12; % Return frequency 12=monthly
 
 
@@ -22,23 +22,31 @@ retFreq = 12; % Return frequency 12=monthly
 
 close all
 
-load ../new.mat
-Returns = Returns(:,2:11);
-[dummy numAC] = size(Returns);
+load o.mat
+numAC = 10;
 
 
 
 %% calculate return and CovMat
 
-ExpRet = mean(Returns)'; 
-CovMat = cov(Returns);
+ExpRet = o.ER1; 
+CovMat = o.Sig1;
 
 
 %% optimization
 
 [frontWts, frontRet, frontVol] = MeanVarianceOptimization(ExpRet, CovMat, numPort, method);
 
+ExpRet = o.ER2; 
+CovMat = o.Sig2;
 
+[frontWts2, frontRet2, frontVol2] = MeanVarianceOptimization(ExpRet, CovMat, numPort, method);
+
+load ../new.mat
+Returns = Returns(:,2:11);
+ExpRet = mean(Returns)';
+CovMat = cov(Returns);
+[frontWts3, frontRet3, frontVol3] = MeanVarianceOptimization(ExpRet, CovMat, numPort, method);
 %% outputs
 
     % plot efficient frontier
@@ -46,12 +54,20 @@ CovMat = cov(Returns);
         portRet = ((1 + frontRet).^(retFreq) - 1);
         portVol = frontVol*sqrt(retFreq);
         
-
+        portRet2 = ((1 + frontRet2).^(retFreq) - 1);
+        portVol2 = frontVol2*sqrt(retFreq);
+        
+        
+        portRet3 = ((1 + frontRet3).^(retFreq) - 1);
+        portVol3 = frontVol3*sqrt(retFreq);
+        
         ACvols = sqrt(diag(CovMat)*retFreq);
 
         figure(1)
         hold on
         plot(portVol, portRet,'LineWidth',2)
+        plot(portVol2, portRet2,'LineWidth',2)
+        plot(portVol3, portRet3,'LineWidth',2)
         xlabel('Expected Risk (Volatility)','FontSize',12)
         ylabel('Expected Return','FontSize',12)
         title('Mean-Variance Efficient Frontier' ,'FontSize',12)
@@ -121,8 +137,9 @@ function[frontWts, frontRet, frontVol] = MeanVarianceOptimization(ExpRet, CovMat
         frontVol(i,1) = sqrt(weights'*CovMat*weights);
         frontWts(:,i) = weights;
     end
-    frontWts(:,41)
     
+        
+        
 
 
 
