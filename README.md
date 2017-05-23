@@ -5,8 +5,8 @@ Regime Switching
 
 ## Author
 
-Kun Yu kun.yu@uzh.ch 16-704-389
-Luoyi Zou luoyi.zou@uzh.ch 16-743-536
+Kun Yu       kun.yu@uzh.ch 16-704-389
+Luoyi Zou    luoyi.zou@uzh.ch 16-743-536
 
 ## File List
 
@@ -20,7 +20,7 @@ Luoyi Zou luoyi.zou@uzh.ch 16-743-536
 - new.mat
  - Same set of data stored in MATLAB-friendly .mat format
 
-##### Home-made Estimation Results
+##### Completed Estimation Results
 - est.mat
  - It takes tens of minutes to run the **mainEstimation.m** script to estimate all parameters, so we stored the resulting variables that can be simply loaded by **backTesting.m** to process the remaining calculation & run backtest.
  - It is also possible to run the **mainEstimation.m** to go through from the beginning of the process.
