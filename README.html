@@ -1,0 +1,56 @@
+<div><h1 class="title mousetrap">README</h1><div class="content mousetrap"><h1 id="project-title">README</h1>
+<p>Regime Switching<br><em>An UZH Asset Management: Advanced Portfolio Management FS17 Project</em></p>
+<h2 id="getting-started">Author</h2>
+<p>Kun Yu kun.yu@uzh.ch 16-704-389<br>Luoyi Zou luoyi.zou@uzh.ch 16-743-536</p>
+<h2 id="files">File List</h2>
+<h3 id="prerequisites">Data Files</h3>
+<h5 id="historical-return-data">Historical Return Data</h5>
+<ul>
+<li>data.xls<ul>
+<li>The original data file with data retrieved from <strong>BenchmarkReturns_v2.xlsx</strong> <em>(provided by Dr. Rohner)</em> and Bloomberg</li>
+</ul>
+</li>
+<li>dataCSV.csv<ul>
+<li>Same set of data, <strong>data.xls</strong> cleaned for the purpose of being imported to MATLAB</li>
+</ul>
+</li>
+<li>new.mat<ul>
+<li>Same set of data stored in MATLAB-friendly .mat format</li>
+</ul>
+</li>
+</ul>
+<h5 id="home-made-estimation-results">Home-made Estimation Results</h5>
+<ul>
+<li>est.mat<ul>
+<li>It takes tens of minutes to run the <strong>mainEstimation.m</strong> script to estimate all parameters, so we stored the resulting variables that can be simply loaded by <strong>backTesting.m</strong> to process the remaining calculation &amp; run backtest.</li>
+<li>It is also possible to run the <strong>mainEstimation.m</strong> to go through from the beginning of the process.</li>
+</ul>
+</li>
+</ul>
+<h3 id="prerequisites">MATLAB Scripts &amp; Functions</h3>
+<ul>
+<li>mainEstimation.m<ul>
+<li>The entry point of the project. Estimate the P, Q and other regime-related parameters using the MS_Regress-MATLAB package.</li>
+</ul>
+</li>
+<li>getBetas.m<ul>
+<li>Called by <strong>mainEstimation.m</strong> to calculate the beta coefficients of assets for every observation windows.</li>
+</ul>
+</li>
+<li>backTesting.m<ul>
+<li>The script that calculates asset-and-regime-specific expected returns and volatilities. It also computes the optimal weights of assets across months, and calculate the overall portfolio return of the strategy.</li>
+</ul>
+</li>
+<li>plotting.m<ul>
+<li>Called by <strong>backTesting.m</strong> by the end of the script. Used to visualise the data estimated and calculated.</li>
+</ul>
+</li>
+</ul>
+<h2 id="authors">Acknowledgements</h2>
+<ul>
+<li>Used in <strong>mainEstimation.m</strong><ul>
+<li><strong>Marcelo Perlin</strong> - <em>MS_Regress - The MATLAB Package for Markov Regime Switching Models</em> - <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1714016" target="_blank">SSRN</a> - <a href="https://github.com/msperlin/MS_Regress-Matlab" target="_blank">GitHub Page</a></li>
+</ul>
+</li>
+</ul>
+</div></div>

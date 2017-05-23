@@ -1,6 +1,6 @@
 load('new.mat') % RAW RETURN DATA FILE
 load('est.mat') % ESTIMATED PARAMETERS DATA FILE FROM mainEstimation.m
-load('unconOptimal.mat')
+%load('unconOptimal.mat')
 
 out.uuz = Returns(:,1); % Assume Risk Free Rate = JPM 3 Mo Cash Total Return Index
 
@@ -128,26 +128,4 @@ input('Press Enter to Plot Figures');
 
 plotting
 
-%% Sharpe & Max Drawdown for Non-Regime-Dependent Strategy
-prets = [];
 
-for i=50:length(Returns)-1
-    Returnz = Returns(1:50,2:11);
-    er = mean(Returnz);
-    cv = cov(Returnz);
-    w = inv(cv)*er';
-    w=w+abs(w); % Short-sell constraint
-    w=w/sum(w);
-    
-    pret = Returns(i,2:11)*w;
-    prets = [prets pret];
-    
-end
-input('Press Enter to Calculate Non-RS Strategy: Monthly Rebalancing with Short Sell Constraint')
-
-plot(ret2price(prets),'rx');
-
-NonRegimeDependentMean = mean(prets)*12
-NonRegimeDependentVolatility = std(prets)*sqrt(12)
-NRDSharpe = (NonRegimeDependentMean-Returns(end,1)*12) / NonRegimeDependentVolatility
-NRDMaxDrawDown = maxdrawdown(ret2price(prets))
