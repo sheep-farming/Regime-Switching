@@ -4,6 +4,8 @@ load('unconOptimal.mat')
 
 out.uuz = Returns(:,1); % Assume Risk Free Rate = JPM 3 Mo Cash Total Return Index
 
+%% See Paper https://www0.gsb.columbia.edu/faculty/aang/papers/inquire.pdf
+
 %% Eq 2
 
 P = out.P;
